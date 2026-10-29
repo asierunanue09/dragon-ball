@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dragon Ball DB - Explorador de Personajes</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts & Lucide Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            orbitron: ['Orbitron', 'sans-serif'],
+            rajdhani: ['Rajdhani', 'sans-serif'],
+          },
+          colors: {
+            dbz: {
+              orange: '#FF6B00',
+              yellow: '#FFD700',
+              blue: '#00D2FF',
+              dark: '#0A0E17',
+              card: '#121824',
+              accent: '#FF0055'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #0A0E17;
+      color: #E2E8F0;
+      font-family: 'Rajdhani', sans-serif;
+    }
+    .orange-glow {
+      box-shadow: 0 0 20px rgba(255, 107, 0, 0.4);
+    }
+    .card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card-hover:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 10px 25px -5px rgba(255, 107, 0, 0.5), 0 8px 10px -6px rgba(0, 210, 255, 0.3);
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0A0E17;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #FF6B00;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #FFD700;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-dbz-orange selection:text-white">
+
+  <!-- HEADER / HERO -->
+  <header class="border-b border-dbz-orange/30 bg-dbz-card/80 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-dbz-orange to-dbz-yellow flex items-center justify-center font-orbitron font-black text-xl shadow-lg">
+          ★
+        </div>
+        <div>
+          <h1 class="text-2xl font-orbitron font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-dbz-orange via-dbz-yellow to-dbz-blue">
+            DRAGON BALL API
+          </h1>
+          <p class="text-xs text-gray-400 font-mono">BASE DE DATOS COMPLETA DE PERSONAJES</p>
+        </div>
+      </div>
+
+      <!-- COUNTER BADGE -->
+      <div class="flex items-center gap-2 bg-dbz-dark border border-dbz-orange/40 px-4 py-2 rounded-full shadow-inner">
+        <i data-lucide="database" class="w-4 h-4 text-dbz-orange"></i>
+        <span class="text-sm font-semibold">Total Personajes:</span>
+        <span id="characterCount" class="text-dbz-yellow font-orbitron font-bold">Cargando...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- CONTROLES Y FILTROS -->
+    <section class="bg-dbz-card/60 border border-white/10 rounded-2xl p-6 mb-8 backdrop-blur-sm shadow-xl">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- BUSCADOR -->
+        <div class="relative">
+          <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Buscar Personaje</label>
+          <div class="relative">
+            <input type="text" id="searchInput" placeholder="Goku, Vegeta, Frieza..." 
+              class="w-full bg-dbz-dark/80 border border-white/20 rounded-xl px-4 py-2.5 pl-10 text-white placeholder-gray-500 focus:outline-none focus:border-dbz-orange transition-all">
+            <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3 top-3.5"></i>
+          </div>
+        </div>
+
+        <!-- FILTRO RAZA -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Raza</label>
+          <select id="raceSelect" class="w-full bg-dbz-dark/80 border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-dbz-orange transition-all">
+            <option value="ALL">Todas las Razas</option>
+          </select>
+        </div>
+
+        <!-- FILTRO GÉNERO -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Género</label>
+          <select id="genderSelect" class="w-full bg-dbz-dark/80 border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-dbz-orange transition-all">
+            <option value="ALL">Todos los Géneros</option>
+            <option value="Male">Masculino</option>
+            <option value="Female">Femenino</option>
+            <option value="Unknown">Desconocido</option>
+          </select>
+        </div>
+
+        <!-- ORDENAR -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Ordenar Por</label>
+          <select id="sortSelect" class="w-full bg-dbz-dark/80 border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-dbz-orange transition-all">
+            <option value="default">Por defecto (ID)</option>
+            <option value="ki-desc">Mayor Ki primero</option>
+            <option value="name-asc">Nombre (A-Z)</option>
+          </select>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- LOADING SPINNER -->
+    <div id="loadingState" class="flex flex-col items-center justify-center py-20">
+      <div class="w-16 h-16 border-4 border-dbz-orange border-t-transparent rounded-full animate-spin mb-4"></div>
+      <p class="font-orbitron text-dbz-yellow text-lg tracking-wider animate-pulse">CARGANDO DATOS DEL SCANNER (SCOUTER)...</p>
+    </div>
+
+    <!-- GRID DE PERSONAJES -->
+    <div id="characterGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 hidden">
+      <!-- Tarjetas insertadas por Javascript -->
+    </div>
+
+    <!-- SIN RESULTADOS -->
+    <div id="noResults" class="hidden text-center py-16">
+      <i data-lucide="ghost" class="w-16 h-16 text-dbz-orange mx-auto mb-4 opacity-60"></i>
+      <h3 class="text-xl font-orbitron text-white font-bold mb-2">Sin coincidencias encontradas</h3>
+      <p class="text-gray-400">Intenta cambiando los términos de búsqueda o los filtros aplicados.</p>
+    </div>
+
+  </main>
+
+  <!-- MODAL DE DETALLE COMPLETO -->
+  <div id="modalContainer" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden transition-opacity duration-300 opacity-0">
+    <div class="bg-dbz-card border border-dbz-orange/40 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative">
+      
+      <!-- BOTÓN CERRAR -->
+      <button id="closeModal" class="absolute top-4 right-4 z-10 p-2 bg-dbz-dark/80 hover:bg-dbz-orange text-white rounded-full transition-colors border border-white/10">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <!-- CONTENIDO DINÁMICO DEL MODAL -->
+      <div id="modalContent">
+        <!-- Renderizado con JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    const API_URL = 'https://dragonball-api.com/api/characters';
+    let allCharacters = [];
+    let filteredCharacters = [];
+
+    // Cargar todos los personajes manejando paginación de la API
+    async function fetchAllCharacters() {
+      try {
+        let currentPage = 1;
+        let totalPages = 1;
+        let collected = [];
+
+        do {
+          const response = await fetch(`${API_URL}?page=${currentPage}&limit=50`);
+          const data = await response.json();
+          
+          if (Array.isArray(data)) {
+            collected = collected.concat(data);
+            break;
+          } else {
+            collected = collected.concat(data.items || []);
+            totalPages = data.meta ? data.meta.totalPages : 1;
+          }
+          currentPage++;
+        } while (currentPage <= totalPages);
+
+        allCharacters = collected;
+        filteredCharacters = [...allCharacters];
+
+        populateRaceFilter();
+        renderGrid();
+        updateCounter();
+
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('characterGrid').classList.remove('hidden');
+
+      } catch (error) {
+        console.error('Error al obtener personajes:', error);
+        document.getElementById('loadingState').innerHTML = `
+          <i data-lucide="alert-triangle" class="w-12 h-12 text-red-500 mb-2"></i>
+          <p class="text-red-400 font-bold">Error al cargar la API de Dragon Ball.</p>
+        `;
+        lucide.createIcons();
+      }
+    }
+
+    // Poblar dropdown de razas automáticamente
+    function populateRaceFilter() {
+      const raceSelect = document.getElementById('raceSelect');
+      const races = [...new Set(allCharacters.map(c => c.race).filter(Boolean))].sort();
+      
+      races.forEach(race => {
+        const option = document.createElement('option');
+        option.value = race;
+        option.textContent = race;
+        raceSelect.appendChild(option);
+      });
+    }
+
+    // Renderizar tarjetas en el grid
+    function renderGrid() {
+      const grid = document.getElementById('characterGrid');
+      const noResults = document.getElementById('noResults');
+
+      grid.innerHTML = '';
+
+      if (filteredCharacters.length === 0) {
+        noResults.classList.remove('hidden');
+        return;
+      }
+
+      noResults.classList.add('hidden');
+
+      filteredCharacters.forEach(char => {
+        const card = document.createElement('div');
+        card.className = 'bg-dbz-card border border-white/10 rounded-2xl overflow-hidden card-hover cursor-pointer flex flex-col justify-between group relative';
+        
+        // Renderizado del Ki
+        const maxKi = char.maxKi || char.ki || 'N/A';
+
+        card.innerHTML = `
+          <!-- Imagen de Fondo Aura -->
+          <div class="absolute inset-0 bg-gradient-to-t from-dbz-dark via-transparent to-transparent z-10"></div>
+          
+          <!-- Badge Raza -->
+          <div class="absolute top-3 left-3 z-20 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-md border border-dbz-orange/40 text-xs font-semibold text-dbz-yellow">
+            ${char.race || 'Desconocido'}
+          </div>
+
+          <!-- Contenedor Imagen -->
+          <div class="h-64 overflow-hidden relative flex items-center justify-center p-4 bg-gradient-to-b from-dbz-dark/50 to-dbz-card">
+            <img src="${char.image}" alt="${char.name}" 
+              class="h-full object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] group-hover:scale-110 transition-transform duration-500"
+              loading="lazy">
+          </div>
+
+          <!-- Información Base -->
+          <div class="p-5 z-20 relative bg-dbz-card">
+            <h3 class="font-orbitron font-bold text-lg text-white group-hover:text-dbz-orange transition-colors truncate">
+              ${char.name}
+            </h3>
+            
+            <div class="flex items-center gap-2 text-xs text-gray-400 mt-1 mb-4">
+              <span>${char.gender || 'N/A'}</span>
+              <span>•</span>
+              <span class="text-dbz-blue font-semibold">${char.affiliation || 'Sin afiliación'}</span>
+            </div>
+
+            <!-- Ki Stats -->
+            <div class="space-y-1.5 pt-3 border-t border-white/10 text-xs font-mono">
+              <div class="flex justify-between">
+                <span class="text-gray-400">Ki Base:</span>
+                <span class="text-dbz-yellow font-bold">${char.ki}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-400">Ki Máximo:</span>
+                <span class="text-dbz-orange font-bold">${maxKi}</span>
+              </div>
+            </div>
+          </div>
+        `;
+
+        card.addEventListener('click', () => openCharacterModal(char.id));
+        grid.appendChild(card);
+      });
+
+      lucide.createIcons();
+    }
+
+    // Filtrar y Ordenar
+    function filterAndSort() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const selectedRace = document.getElementById('raceSelect').value;
+      const selectedGender = document.getElementById('genderSelect').value;
+      const sortBy = document.getElementById('sortSelect').value;
+
+      filteredCharacters = allCharacters.filter(char => {
+        const matchesSearch = char.name.toLowerCase().includes(searchTerm);
+        const matchesRace = selectedRace === 'ALL' || char.race === selectedRace;
+        const matchesGender = selectedGender === 'ALL' || char.gender === selectedGender;
+
+        return matchesSearch && matchesRace && matchesGender;
+      });
+
+      // Ordenar
+      if (sortBy === 'name-asc') {
+        filteredCharacters.sort((a, b) => a.name.localeCompare(b.name));
+      } else if (sortBy === 'ki-desc') {
+        filteredCharacters.sort((a, b) => {
+          const kiA = parseKi(a.ki);
+          const kiB = parseKi(b.ki);
+          return kiB - kiA;
+        });
+      } else {
+        filteredCharacters.sort((a, b) => a.id - b.id);
+      }
+
+      renderGrid();
+      updateCounter();
+    }
+
+    // Parser auxiliar para convertir Ki formateado (ej: 60.000.000) a número
+    function parseKi(kiStr) {
+      if (!kiStr) return 0;
+      let clean = kiStr.replace(/\./g, '').replace(/,/g, '').toLowerCase();
+      if (clean.includes('billion')) return parseFloat(clean) * 1000000000;
+      if (clean.includes('million')) return parseFloat(clean) * 1000000;
+      return parseFloat(clean) || 0;
+    }
+
+    function updateCounter() {
+      document.getElementById('characterCount').innerText = `${filteredCharacters.length} / ${allCharacters.length}`;
+    }
+
+    // Abrir Modal y obtener detalles extendidos (Planeta, Transformaciones)
+    async function openCharacterModal(id) {
+      const modalContainer = document.getElementById('modalContainer');
+      const modalContent = document.getElementById('modalContent');
+
+      // Loader dentro del modal
+      modalContent.innerHTML = `
+        <div class="p-12 text-center">
+          <div class="w-12 h-12 border-4 border-dbz-orange border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p class="font-orbitron text-dbz-yellow">Escaneando biografía y transformaciones...</p>
+        </div>
+      `;
+
+      modalContainer.classList.remove('hidden');
+      setTimeout(() => modalContainer.classList.add('opacity-100'), 10);
+
+      try {
+        const res = await fetch(`${API_URL}/${id}`);
+        const data = await res.json();
+
+        const originPlanet = data.originPlanet ? data.originPlanet.name : 'Desconocido';
+        const planetImg = data.originPlanet ? data.originPlanet.image : null;
+        const transformations = data.transformations || [];
+
+        modalContent.innerHTML = `
+          <div class="p-6 md:p-8">
+            
+            <!-- ENCABEZADO -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center mb-8">
+              <div class="flex justify-center bg-dbz-dark/60 rounded-xl p-4 border border-white/10">
+                <img src="${data.image}" alt="${data.name}" class="h-64 object-contain drop-shadow-[0_0_15px_rgba(255,107,0,0.3)]">
+              </div>
+
+              <div class="md:col-span-2 space-y-4">
+                <div>
+                  <span class="text-xs font-bold uppercase tracking-widest text-dbz-blue">${data.race} • ${data.gender}</span>
+                  <h2 class="text-3xl font-orbitron font-black text-white">${data.name}</h2>
+                  <p class="text-sm text-dbz-orange font-semibold">${data.affiliation}</p>
+                </div>
+
+                <!-- DESCRIPCIÓN -->
+                <p class="text-sm text-gray-300 leading-relaxed max-h-36 overflow-y-auto pr-2">
+                  ${data.description || 'Sin descripción disponible.'}
+                </p>
+
+                <!-- STATS BAR -->
+                <div class="grid grid-cols-2 gap-3 pt-2 font-mono text-xs">
+                  <div class="bg-dbz-dark p-3 rounded-lg border border-white/5">
+                    <span class="text-gray-400 block">Ki Base</span>
+                    <span class="text-dbz-yellow font-bold text-base">${data.ki}</span>
+                  </div>
+                  <div class="bg-dbz-dark p-3 rounded-lg border border-white/5">
+                    <span class="text-gray-400 block">Ki Total/Máximo</span>
+                    <span class="text-dbz-orange font-bold text-base">${data.maxKi}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- PLANETA DE ORIGEN -->
+            <div class="mb-8 border-t border-white/10 pt-6">
+              <h3 class="text-sm font-orbitron font-bold text-gray-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <i data-lucide="globe" class="w-4 h-4 text-dbz-blue"></i> Planeta de Origen
+              </h3>
+              <div class="flex items-center gap-4 bg-dbz-dark/60 p-4 rounded-xl border border-white/10">
+                ${planetImg ? `<img src="${planetImg}" class="w-16 h-16 object-cover rounded-lg border border-dbz-blue/40">` : ''}
+                <div>
+                  <h4 class="font-bold text-white">${originPlanet}</h4>
+                  <p class="text-xs text-gray-400">${data.originPlanet?.description || 'Sin información adicional del planeta.'}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- TRANSFORMACIONES -->
+            <div class="border-t border-white/10 pt-6">
+              <h3 class="text-sm font-orbitron font-bold text-gray-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <i data-lucide="zap" class="w-4 h-4 text-dbz-yellow"></i> Transformaciones (${transformations.length})
+              </h3>
+
+              ${transformations.length === 0 
+                ? `<p class="text-xs text-gray-500 italic">Este personaje no posee transformaciones registradas.</p>`
+                : `
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    ${transformations.map(t => `
+                      <div class="bg-dbz-dark p-3 rounded-xl border border-white/10 flex flex-col items-center text-center group hover:border-dbz-orange transition-colors">
+                        <img src="${t.image}" alt="${t.name}" class="h-28 object-contain mb-2 group-hover:scale-105 transition-transform">
+                        <h5 class="font-semibold text-xs text-white truncate w-full">${t.name}</h5>
+                        <span class="text-[10px] font-mono text-dbz-yellow mt-1">Ki: ${t.ki}</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                `
+              }
+            </div>
+
+          </div>
+        `;
+
+        lucide.createIcons();
+
+      } catch (err) {
+        modalContent.innerHTML = `<p class="text-red-400 p-8 text-center">No se pudieron cargar los detalles del personaje.</p>`;
+      }
+    }
+
+    // Event Listeners
+    document.getElementById('searchInput').addEventListener('input', filterAndSort);
+    document.getElementById('raceSelect').addEventListener('change', filterAndSort);
+    document.getElementById('genderSelect').addEventListener('change', filterAndSort);
+    document.getElementById('sortSelect').addEventListener('change', filterAndSort);
+
+    // Cerrar Modal
+    function closeModal() {
+      const modalContainer = document.getElementById('modalContainer');
+      modalContainer.classList.remove('opacity-100');
+      setTimeout(() => modalContainer.classList.add('hidden'), 300);
+    }
+
+    document.getElementById('closeModal').addEventListener('click', closeModal);
+    document.getElementById('modalContainer').addEventListener('click', (e) => {
+      if (e.target.id === 'modalContainer') closeModal();
+    });
+
+    // Iniciar Aplicación
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchAllCharacters();
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
